@@ -7,8 +7,10 @@ else
 CFLAGS=-I/usr/local/include -Wall -std=gnu99 -fPIC -O3 -Wa,$(LISTOPTS) $(INCLUDES)
 #CFLAGS=-I/usr/local/include -Wall -std=gnu99 -fPIC -g -Wa,$(LISTOPTS) $(INCLUDES)
 endif
-LIBS=-L/usr/local/lib -ldc1394 -lm -lusb-1.0
-TARGETS=capture_images capture_v4l chameleon_twin chameleon_twin16 chameleon_twin8 chameleon.so
+#LIBS=-L/usr/local/lib -ldc1394 -lm -lusb-1.0
+LIBS=-L/usr/local/lib -lm -lusb-1.0
+#TARGETS=capture_images capture_v4l chameleon_twin chameleon_twin16 chameleon_twin8 chameleon.so
+TARGETS=capture_images capture_v4l
 
 all: $(TARGETS)
 
