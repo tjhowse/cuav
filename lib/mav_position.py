@@ -235,13 +235,15 @@ class MavInterpolator():
 			#print gps_raw._timestamp, gps_timestamp, gpst, t, gpst - gps_timestamp
 			(lat, lon) = cuav_util.gps_newpos(gps_raw.lat/1.0e7, gps_raw.lon/1.0e7,
 							  gps_raw.cog*0.01,
-							  (gps_raw.vel*0.01) * (gpst - gps_timestamp))
+							  #(gps_raw.vel*0.01) * (gpst - gps_timestamp))
+							  (gps_raw.vel*0) * (gpst - gps_timestamp))
 		else:
 			gps_raw = self._find_msg('GPS_RAW', gpst)
 			gps_timestamp = self.gps_time(gps_raw)
 			(lat, lon) = cuav_util.gps_newpos(gps_raw.lat, gps_raw.lon,
 							  gps_raw.hdg,
-							  gps_raw.v * (gpst - gps_timestamp))
+							  0 * (gpst - gps_timestamp))
+							  #gps_raw.v * (gpst - gps_timestamp))
 
 		# get altitude
 		altitude = self._altitude(scaled_pressure)

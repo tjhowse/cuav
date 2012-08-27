@@ -1,11 +1,11 @@
-CC=gcc
-CXX=g++
-AR=ar
+#CC=gcc
+#CXX=g++
+#AR=ar
 INCLUDES=$(shell python-config --includes) -I/opt/libjpeg-turbo/include
 LIBJPEG=-L/opt/libjpeg-turbo/lib -ljpeg -lturbojpeg
-#CC=arm-linux-gnueabi-gcc
-#CXX=arm-linux-gnueabi-g++
-#AR=arm-linux-gnueabi-ar
+CC=arm-linux-gnueabi-gcc
+CXX=arm-linux-gnueabi-g++
+AR=arm-linux-gnueabi-ar
 
 CXXFLAGS=-Wall -O3
 LISTOPTS=-adhlns=$(@:.o=.lst)

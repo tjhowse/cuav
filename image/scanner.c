@@ -47,6 +47,7 @@
 
 static PyObject *ScannerError;
 
+//#look
 #define WIDTH 1280
 #define HEIGHT 960
 
@@ -306,7 +307,7 @@ static void rebayer_1280_960_8(const struct rgb_image8_full *in, struct grey_ima
 	}
 }
 
-
+//#look controls CPU load quite a bit
 #define HISTOGRAM_BITS_PER_COLOR 4
 #define HISTOGRAM_BITS (3*HISTOGRAM_BITS_PER_COLOR)
 #define HISTOGRAM_BINS (1<<HISTOGRAM_BITS)
@@ -325,6 +326,7 @@ static void NOINLINE get_min_max_neon(const struct rgb * __restrict in,
 {
 	const uint8_t *src;
 	uint32_t i;
+	//#look special data types for vector coprocessor
 	uint8x8_t rmax, rmin, gmax, gmin, bmax, bmin;
 	uint8x8x3_t rgb;
 
@@ -395,6 +397,7 @@ static void quantise_image(const struct rgb *in,
 	uint8_t btab[0x100], gtab[0x100], rtab[0x100];
 
 	for (i=0; i<0x100; i++) {
+		//#look bin_spacing calculated from previous function from colour spread/split count
 		btab[i] = (i - min->b) / bin_spacing->b;
 		gtab[i] = (i - min->g) / bin_spacing->g;
 		rtab[i] = (i - min->r) / bin_spacing->r;
@@ -454,6 +457,7 @@ static void unquantise_image(const struct rgb_image8 *in,
  */
 static inline uint16_t rgb_bin(const struct rgb *in)
 {
+	//#look classify pixel into bin
 	return (in->r << (2*HISTOGRAM_BITS_PER_COLOR)) |
 		(in->g << (HISTOGRAM_BITS_PER_COLOR)) |
 		in->b;
@@ -536,6 +540,7 @@ static void histogram_threshold_neighbours(const struct rgb *in,
 		for (rofs=-1; rofs<= 1; rofs++) {
 			for (gofs=-1; gofs<= 1; gofs++) {
 				for (bofs=-1; bofs<= 1; bofs++) {
+					//#look looks at surrounding (colour-space) pixel values and discards this one if adjcent colours are also common
 					struct rgb v2 = { .b=v.b+bofs, .g=v.g+gofs, .r=v.r+rofs };
 					if (v2.r >= (1<<HISTOGRAM_BITS_PER_COLOR) ||
 					    v2.g >= (1<<HISTOGRAM_BITS_PER_COLOR) ||
@@ -634,7 +639,7 @@ static void colour_histogram(const struct rgb_image8 *in, struct rgb_image8 *out
 	}
 #endif
 
-
+	//#look takes your settings and calculates the spacing used for chunking up the colours
 	bin_spacing.r = 1 + (max.r - min.r) / num_bins;
 	bin_spacing.g = 1 + (max.g - min.g) / num_bins;
 	bin_spacing.b = 1 + (max.b - min.b) / num_bins;
@@ -767,7 +772,7 @@ static void colour_histogram_yuv(const struct rgb_image8 *in, struct rgb_image8 
 #endif
 }
 
-
+//#look same as above, but running at full resolution, rather than 640x480
 static void colour_histogram_full(const struct rgb_image8_full *in, struct rgb_image8_full *out)
 {
 	struct rgb min, max;
