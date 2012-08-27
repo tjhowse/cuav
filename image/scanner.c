@@ -47,8 +47,8 @@
 
 static PyObject *ScannerError;
 
-#define WIDTH 1024
-#define HEIGHT 768
+#define WIDTH 1280
+#define HEIGHT 960
 
 #define PACKED __attribute__((__packed__))
 
