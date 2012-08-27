@@ -1,3 +1,5 @@
+#from opencv.cv import *
+#from opencv.highgui import *
 import cv
 
 #capture = cv.CreateCameraCapture(0)
