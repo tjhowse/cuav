@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <arpa/inet.h>
-#include <numpy/arrayobject.h>
+#include </usr/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h>
 
 //#undef __ARM_NEON__
 
