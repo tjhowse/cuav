@@ -30,9 +30,15 @@ int main(int argc, char* argv[])
     int biggestNumber = 0;
     char *split;
     char *saveFile;
+    int setLoop = 0;
+    fstream fileTest;
 
     if (argc > 1)
     {
+        if (argc == 3)
+        {
+            setLoop = 1;
+        }
         saveFile = new char[strlen(argv[1])*sizeof(char)];
         strcpy(saveFile, argv[1]);
     } else {
@@ -46,18 +52,33 @@ int main(int argc, char* argv[])
     frame = cvQueryFrame(camera);
     frame = cvQueryFrame(camera);
  
-    frame = cvQueryFrame(camera);
-    
-    if (frame != NULL)
+    do
     {
-        printf("Got frame\n");
-        cvSaveImage(saveFile, frame);
-    
-    } else {
-        printf("Null frame\n\r");
-        cvReleaseCapture(&camera);
-        return 1;
-    }
+        do
+        {
+            fileTest.open("imgReady");
+            if (fileTest.is_open())
+            {
+                // Python is still busy
+                fileTest.close();
+                usleep(10);
+            } else {
+                break;
+            }
+        } while (1);
+
+        frame = cvQueryFrame(camera);
+        
+        if (frame != NULL)
+        {
+            printf("Got frame\n");
+            cvSaveImage(saveFile, frame);
+            cvSaveImage("imgReady",NULL);
+        
+        } else {
+            printf("Null frame\n\r");
+        }
+    } while (setLoop);
     cvReleaseCapture(&camera);
     return 0;
 }
