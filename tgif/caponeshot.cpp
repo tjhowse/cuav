@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
         while ((fileTest = fopen("imgReady","r")) != NULL)
         {
             fclose(fileTest);
-            usleep(100000);
+            usleep(1000);
             frame = cvQueryFrame(camera);
         }
 

@@ -13,10 +13,13 @@ i = 0
 
 #while 1:
 #img = cv.LoadImage("slow.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
+tImageWritten = int(round(time.time()*1000))
 while 1:
     if os.path.exists("imgReady"):
         print "New image ready!"
+        tNewImage = int(round(time.time()*1000))
         img = cv.LoadImage("loop.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
+        os.remove("imgReady")
 
         img_small = cv.CreateImage((640,480),8,3)
 
@@ -26,7 +29,9 @@ while 1:
         if not img:
             print "Null Image"
 
+        tImageLoaded = int(round(time.time()*1000))
         regions = scanner.scan(img_small)
+        tImageScanned = int(round(time.time()*1000))
         img_small = cv.fromarray(img_small)
         if len(regions) == 0:
             print "Nothing found :("
@@ -36,7 +41,11 @@ while 1:
                 #print minx, miny, maxx, maxy
                 cv.Rectangle(img_small,(minx,miny), (maxx,maxy),cv.RGB(255,0,0),1,0,0);
             cv.SaveImage("/www/pages/test.jpg",img_small)
-        os.remove("imgReady")
+            print ( "Capture: " + str(tNewImage-tImageWritten)+
+                    " Load: " + str(tImageLoaded-tNewImage)+
+                    " Process: " + str(tImageScanned-tImageLoaded)+
+                    " Written: " + str(int(round(time.time()*1000))-tImageScanned))
+            tImageWritten = int(round(time.time()*1000))
     else:
         time.sleep(1)
 
