@@ -14,12 +14,29 @@
 int main(int argc, char* argv[])
 {
     CvCapture* camera = cvCreateCameraCapture(-1); // Use the default camera
-    cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_WIDTH, 1280);
-    cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_HEIGHT, 960);
+    //cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_WIDTH, 1280);
+    //cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_HEIGHT, 960);
+    printf("Setting resolution\n");
+    cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_WIDTH, 800);
+    cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_HEIGHT, 600);
+    //printf("Setting Gain\n");
+    //cvSetCaptureProperty( camera, CV_CAP_PROP_SATURATION, 1);
+    
+    
     //cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_WIDTH, 640);
     //cvSetCaptureProperty( camera, CV_CAP_PROP_FRAME_HEIGHT, 480);
+    //printf("Setting FPS\n");
+    /*for (int i = 0; i < 40; i++)
+    {
+        printf("\nTrying setting %d: ", i);
+        cvSetCaptureProperty( camera, i, 5);
+    }*/
 
+    CvSize size;
+    size.width = 640;
+    size.height = 480;
     IplImage* frame = 0;
+    IplImage* outputFrame = cvCreateImage(size,IPL_DEPTH_8U,3);
  
     // capturing some extra frames seems to help stability
     cvGrabFrame(camera);
@@ -34,7 +51,10 @@ int main(int argc, char* argv[])
     char *saveFile;
     int setLoop = 0;
     FILE* fileTest;
+    struct stat junk;
+    
 
+    
     if (argc > 1)
     {
         if (argc == 3)
@@ -56,11 +76,13 @@ int main(int argc, char* argv[])
  
     do
     {
-        while ((fileTest = fopen("imgReady","r")) != NULL)
+        //while ((fileTest = fopen("imgReady","r")) != NULL)
+        while (!stat("imgReady",&junk))
         {
-            fclose(fileTest);
+            //fclose(fileTest);
             usleep(1000);
-            frame = cvQueryFrame(camera);
+            //frame = cvQueryFrame(camera);
+            cvGrabFrame(camera);
         }
 
         printf("Python done!\n");
@@ -70,7 +92,8 @@ int main(int argc, char* argv[])
         if (frame != NULL)
         {
             printf("Got frame\n");
-            cvSaveImage(saveFile, frame);
+            cvResize(frame,outputFrame);
+            cvSaveImage(saveFile, outputFrame);
             fileTest = fopen("imgReady","w+");
             fclose(fileTest);
         
