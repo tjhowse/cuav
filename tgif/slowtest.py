@@ -46,7 +46,7 @@ while 1:
             #for (minx, miny, maxx, maxy) in regions:
                 #print minx, miny, maxx, maxy
                 #cv.Rectangle(img_small,(minx,miny), (maxx,maxy),cv.RGB(255,0,0),1,0,0);
-            #cv.SaveImage("/www/pages/test.jpg",img_small)
+        #cv.SaveImage("/www/pages/test.jpg",img_small)
         tCalc = int(round(time.time()*1000))
         tTotal = tCalc-tImageWritten
         fps = round(1.0000/(tTotal/1000.00),2)

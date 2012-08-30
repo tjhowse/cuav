@@ -81,21 +81,22 @@ int main(int argc, char* argv[])
         {
             //fclose(fileTest);
             usleep(1000);
-            //frame = cvQueryFrame(camera);
-            cvGrabFrame(camera);
+            frame = cvQueryFrame(camera);
+            cvResize(frame,outputFrame);
+            //cvGrabFrame(camera);
         }
 
-        printf("Python done!\n");
+        //printf("Python done!\n");
 
-        frame = cvQueryFrame(camera);
+        //frame = cvQueryFrame(camera);
         
         if (frame != NULL)
         {
-            printf("Got frame\n");
-            cvResize(frame,outputFrame);
+            //cvResize(frame,outputFrame);
             cvSaveImage(saveFile, outputFrame);
             fileTest = fopen("imgReady","w+");
             fclose(fileTest);
+            printf("Got frame\n");
         
         } else {
             printf("Null frame\n\r");
