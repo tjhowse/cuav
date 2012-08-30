@@ -25,8 +25,21 @@ class MissionGenerator():
         self.entryPoints = []
         self.exitPoints = []
         self.SearchPattern = []
-        self.joeApproach = (-26.623860, 151.847557, 150)
-        self.joeDrop = (-26.624864, 151.848349, 150)
+        if opts.sutton:
+            self.joeApproach = (-35.052638, 149.256767, 150)
+            self.joeDrop = (-35.053660, 149.258577, 150)
+            self.takeoffPt = (-35.049842, 149.256026, 50)
+            self.landingApproach = (-35.058983, 149.254449, 151.842225)
+            self.landingApproach2 = (-35.056078, 149.254908)
+            self.landingPt = (-35.051428, 149.255735)
+        else:
+            self.joeApproach = (-26.623860, 151.847557, 150)
+            self.joeDrop = (-26.624864, 151.848349, 150)
+            self.takeoffPt = (-26.585745, 151.840867, 50)
+            self.landingApproach = (-26.592155, 151.842225)
+            self.landingApproach2 = (-26.588218, 151.841345)
+            self.landingPt = (-26.582821, 151.840247)
+            
 
     def Process(self, searchMask="SA-", missionBoundaryMask="MB-"):
         '''Processes the imported xml file for points'''
@@ -83,12 +96,12 @@ class MissionGenerator():
         for point in airf:
             if self.getElement(point.getElementsByTagName('name')[0]) in listentry:
                 self.entryPoints.append((float(self.getElement(point.getElementsByTagName('latitude')[0])), float(self.getElement(point.getElementsByTagName('longitude')[0])), alt))
-                #print "Entry - " + str(self.entryPoints[-1])
+                print "Entry - " + str(self.entryPoints[-1])
 
         for point in airf:
             if self.getElement(point.getElementsByTagName('name')[0]) in listexit:
                 self.exitPoints.append((float(self.getElement(point.getElementsByTagName('latitude')[0])), float(self.getElement(point.getElementsByTagName('longitude')[0])), alt))
-                #print "Exit - " + str(self.exitPoints[-1])
+                print "Exit - " + str(self.exitPoints[-1])
 
     def CreateSearchPattern(self, width=50.0, overlap=10.0, offset=10, wobble=10, alt=100):
         '''Generate the waypoints for the search pattern, using alternating strips
@@ -96,109 +109,146 @@ class MissionGenerator():
         alt is the altitude (relative to ground) of the points'''
         self.SearchPattern = []
 
-        #find the nearest point to Airfield Home - use this as a starting point
-        nearestdist = cuav_util.gps_distance(self.airfieldHome[0], self.airfieldHome[1], self.searchArea[0][0], self.searchArea[0][1])
-        nearest = self.searchArea[0]
-        for point in self.searchArea:
-            newdist = cuav_util.gps_distance(self.airfieldHome[0], self.airfieldHome[1], point[0], point[1])
-            if newdist < nearestdist:
-                nearest = point
-                nearestdist = newdist
+        #find the nearest point to Airfield Home - use this as a starting point (if entry lanes are not used)
+        if len(self.entryPoints) == 0:
+            nearestdist = cuav_util.gps_distance(self.airfieldHome[0], self.airfieldHome[1], self.searchArea[0][0], self.searchArea[0][1])
+            nearest = self.searchArea[0]
+            for point in self.searchArea:
+                newdist = cuav_util.gps_distance(self.airfieldHome[0], self.airfieldHome[1], point[0], point[1])
+                if newdist < nearestdist:
+                    nearest = point
+                    nearestdist = newdist
+        else:
+            nearestdist = cuav_util.gps_distance(self.entryPoints[0][0], self.entryPoints[0][1], self.searchArea[0][0], self.searchArea[0][1])
+            nearest = self.searchArea[0]
+            for point in self.searchArea:
+                newdist = cuav_util.gps_distance(self.entryPoints[0][0], self.entryPoints[0][1], point[0], point[1])
+                #print "dist = " + str(newdist)
+                if newdist < nearestdist:
+                    nearest = point
+                    nearestdist = newdist
 
         #print "Start = " + str(nearest) + ", dist = " + str(nearestdist)
 
-        #the search pattern will then run parallel between the two furthest points in the list
-        searchLine = (0, 0)
-        for point in self.searchArea: 
-            newdist = cuav_util.gps_distance(point[0], point[1], self.searchArea[self.searchArea.index(point)-1][0], self.searchArea[self.searchArea.index(point)-1][1])
-            if newdist > searchLine[0]:
-                searchLine = (newdist, cuav_util.gps_bearing(point[0], point[1], self.searchArea[self.searchArea.index(point)-1][0], self.searchArea[self.searchArea.index(point)-1][1]))
+        #the search pattern will run between the longest side from nearest
+        bearing1 = cuav_util.gps_bearing(nearest[0], nearest[1], self.searchArea[self.searchArea.index(nearest)-1][0], self.searchArea[self.searchArea.index(nearest)-1][1])
+        bearing2 = cuav_util.gps_bearing(nearest[0], nearest[1], self.searchArea[self.searchArea.index(nearest)+1][0], self.searchArea[self.searchArea.index(nearest)+1][1])
+        dist1 = cuav_util.gps_distance(nearest[0], nearest[1], self.searchArea[self.searchArea.index(nearest)-1][0], self.searchArea[self.searchArea.index(nearest)-1][1])
+        dist2 = cuav_util.gps_distance(nearest[0], nearest[1], self.searchArea[self.searchArea.index(nearest)+1][0], self.searchArea[self.searchArea.index(nearest)+1][1])
+        if dist1 > dist2:
+            self.searchBearing = bearing1
+        else:
+            self.searchBearing = bearing2
 
-        self.searchBearing = searchLine[1]
-        #print "Search bearing is " + str(self.searchBearing) + "/" + str((self.searchBearing + 180) % 360)
+        #the search pattern will then run parallel between the two furthest points in the list
+        #searchLine = (0, 0)
+        #for point in self.searchArea: 
+        #    newdist = cuav_util.gps_distance(point[0], point[1], self.searchArea[self.searchArea.index(point)-1][0], self.searchArea[self.searchArea.index(point)-1][1])
+        #    if newdist > searchLine[0]:
+        #        searchLine = (newdist, cuav_util.gps_bearing(point[0], point[1], self.searchArea[self.searchArea.index(point)-1][0], self.searchArea[self.searchArea.index(point)-1][1]))
+
+        #self.searchBearing = searchLine[1]
+        
 
         #need to find the 90 degree bearing to searchBearing that is inside the search area. This
         #will be the bearing we increment the search rows by
+        #need to get the right signs for the bearings, depending which quadrant the search area is in wrt nearest
         if not cuav_util.polygon_outside(cuav_util.gps_newpos(nearest[0], nearest[1], (self.searchBearing + 45) % 360, 10), self.searchArea):
             self.crossBearing = (self.searchBearing + 90) % 360
+        elif not cuav_util.polygon_outside(cuav_util.gps_newpos(nearest[0], nearest[1], (self.searchBearing + 135) % 360, 10), self.searchArea):
+            self.crossBearing = (self.searchBearing + 90) % 360
+            self.searchBearing = (self.searchBearing + 180) % 360
+        elif not cuav_util.polygon_outside(cuav_util.gps_newpos(nearest[0], nearest[1], (self.searchBearing - 45) % 360, 10), self.searchArea):
+            self.crossBearing = (self.searchBearing - 90) % 360
         else:
             self.crossBearing = (self.searchBearing - 90) % 360
-        #print "Cross bearing is: " + str(self.crossBearing)
+            self.searchBearing = (self.searchBearing - 180) % 360
+
+        print "Search bearing is " + str(self.searchBearing) + "/" + str((self.searchBearing + 180) % 360)
+        print "Cross bearing is: " + str(self.crossBearing)
 
         #the distance between runs is this:
         self.deltaRowDist = width - width*(float(overlap)/100)
         if self.deltaRowDist <= 0:
             print "Error, overlap % is too high"
             return
-        #print "Delta row = " + str(self.deltaRowDist)
+        print "Delta row = " + str(self.deltaRowDist)
+
+        #expand the search area to 1/2 deltaRowDist to ensure full coverage
 
         #we are starting at the "nearest" and mowing the lawn parallel to "self.searchBearing"
-        #first waypoint is width*(overlap/100) on an opposite bearing (so behind the search area)
-        nextWaypoint =  cuav_util.gps_newpos(nearest[0], nearest[1], self.crossBearing, self.deltaRowDist/2)
+        #first waypoint is right near the Search Area boundary (without being on it) (10% of deltaRowDist
+        #on an opposite bearing (so behind the search area)
+        nextWaypoint =  cuav_util.gps_newpos(nearest[0], nearest[1], self.crossBearing, self.deltaRowDist/10)
         print "First = " + str(nextWaypoint)
         #self.SearchPattern.append(firstWaypoint)
 
         #mow the lawn, every 2nd row:
         while True:
             pts = self.projectBearing(self.searchBearing, nextWaypoint, self.searchArea)
+            #print "Projecting " + str(nextWaypoint) + " along " + str(self.searchBearing)
             #check if we're outside the search area
             if pts == 0:
                 break
             (nextW, nextnextW) = (pts[0], pts[1])
             if cuav_util.gps_distance(nextWaypoint[0], nextWaypoint[1], nextW[0], nextW[1]) < cuav_util.gps_distance(nextWaypoint[0], nextWaypoint[1], nextnextW[0], nextnextW[1]):
-                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, -(offset+wobble)))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], (self.searchBearing + 180) % 360, (offset+wobble)))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
-                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.searchBearing, offset+wobble))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.searchBearing, (offset+wobble)))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
                 #now turn 90degrees from bearing and width distance
                 nextWaypoint = cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.crossBearing, self.deltaRowDist*2)
+                self.searchBearing = (self.searchBearing + 180) % 360
             else:
-                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.searchBearing, offset+wobble))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], (self.searchBearing + 180) % 360, offset+wobble))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
-                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, -(offset+wobble)))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, (offset+wobble)))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
                 #now turn 90degrees from bearing and width distance
                 nextWaypoint = cuav_util.gps_newpos(nextW[0], nextW[1], self.crossBearing, self.deltaRowDist*2)
+                self.searchBearing = (self.searchBearing + 180) % 360
 
-            #print "Next = " + str(nextWaypoint)
+            print "Next = " + str(nextWaypoint)
         
         #go back and do the rows we missed. There still might be one more row to do in 
         # the crossbearing direction, so check for that first
-        nextWaypoint = cuav_util.gps_newpos(nextWaypoint[0], nextWaypoint[1], self.crossBearing, self.deltaRowDist)
+        nextWaypoint = cuav_util.gps_newpos(nextWaypoint[0], nextWaypoint[1], self.crossBearing, -self.deltaRowDist)
         pts = self.projectBearing(self.searchBearing, nextWaypoint, self.searchArea)
         if pts == 0:
-            nextWaypoint = cuav_util.gps_newpos(self.SearchPattern[-1][0], self.SearchPattern[-1][1], self.crossBearing, self.deltaRowDist)
+            nextWaypoint = cuav_util.gps_newpos(nextWaypoint[0], nextWaypoint[1], self.crossBearing, -2*self.deltaRowDist)
             self.crossBearing = (self.crossBearing + 180) % 360
         else:
             self.crossBearing = (self.crossBearing + 180) % 360
 
         while True:
             pts = self.projectBearing(self.searchBearing, nextWaypoint, self.searchArea)
+            #print "Projecting " + str(nextWaypoint) + " along " + str(self.searchBearing)
             #check if we're outside the search area
             if pts == 0:
                 break
             (nextW, nextnextW) = (pts[0], pts[1])
             if cuav_util.gps_distance(nextWaypoint[0], nextWaypoint[1], nextW[0], nextW[1]) < cuav_util.gps_distance(nextWaypoint[0], nextWaypoint[1], nextnextW[0], nextnextW[1]):
-                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, -offset))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], (self.searchBearing + 180) % 360, offset))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
                 self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.searchBearing, offset))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
                 #now turn 90degrees from bearing and width distance
                 nextWaypoint = cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.crossBearing, self.deltaRowDist*2)
+                self.searchBearing = (self.searchBearing + 180) % 360
             else:
-                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], self.searchBearing, offset))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextnextW[0], nextnextW[1], (self.searchBearing + 180) % 360, offset))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
-                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, -offset))
+                self.SearchPattern.append(cuav_util.gps_newpos(nextW[0], nextW[1], self.searchBearing, offset))
                 self.SearchPattern[-1] =(self.SearchPattern[-1][0], self.SearchPattern[-1][1], alt)
                 #now turn 90degrees from bearing and width distance
                 nextWaypoint = cuav_util.gps_newpos(nextW[0], nextW[1], self.crossBearing, self.deltaRowDist*2)
+                self.searchBearing = (self.searchBearing + 180) % 360
 
-            #print "Next = " + str(nextWaypoint)
+            print "Next(alt) = " + str(nextWaypoint)
 
         #add in the altitude points (relative to airfield home)
         for point in self.SearchPattern:
             self.SearchPattern[self.SearchPattern.index(point)] = (point[0], point[1], alt)
-
 
     def isOutsideSearchAreaBoundingBox(self, lat, longy):
         '''Checks if the long/lat pair is inside the search area
@@ -281,6 +331,7 @@ class MissionGenerator():
 
         #if there's more than two points in coPoints, return the furthest away points
         if len(coPoints) < 2:
+            #print str(len(coPoints)) + " point i-sect"
             return 0
         elif len(coPoints) == 2:
             return coPoints
@@ -344,7 +395,7 @@ class MissionGenerator():
     def getMapPolygon(self, loiterInSearchArea=1):
         '''Returns a mp_Slipmap compatible (2d) polygon'''
         meanPoint = tuple(numpy.average(self.SearchPattern, axis=0))
-        print "Mean = " + str(meanPoint)
+        #print "Mean = " + str(meanPoint)
 
         if loiterInSearchArea == 1:
             tmp = self.entryPoints[:-1] + self.SearchPattern + self.exitPoints
@@ -416,7 +467,8 @@ class MissionGenerator():
                                 maxDeltaPointIndex = self.SearchPattern.index(point)+1
                                 #print "New max alt diff: " + str(maxDeltaAlt) + ", " + str(partAlt)
             #now put a extra waypoint in between the two maxDeltaAltPoints
-            self.SearchPattern.insert(maxDeltaPointIndex, maxDeltaAltPoint)
+            if maxDeltaAltPoint is not None:
+                self.SearchPattern.insert(maxDeltaPointIndex, maxDeltaAltPoint)
             #print "There are " + str(len(self.SearchPattern)) + " points in the search pattern. Max Alt error is " + str(maxDeltaAlt)
             if len(self.SearchPattern) >= numMaxPoints or threshold > maxDeltaAlt:
                 break
@@ -469,7 +521,7 @@ class MissionGenerator():
         #WP2 - takeoff, then jump to entry lanes
         w = fn(TargetSys, TargetComp, 0,
                MAV_FRAME_GLOBAL_RELATIVE_ALT,
-               MAV_CMD_NAV_TAKEOFF, 0, 1, 10, 0, 0, 0, -26.585745, 151.840867, 30)
+               MAV_CMD_NAV_TAKEOFF, 0, 1, 10, 0, 0, 0, self.takeoffPt[0], self.takeoffPt[1], self.takeoffPt[2])
         MAVpointLoader.add(w, comment="Takeoff")
         entryjump.append(MAVpointLoader.count())
         w = fn(TargetSys, TargetComp, 0,
@@ -482,7 +534,7 @@ class MissionGenerator():
         landing_approach_wpnum = MAVpointLoader.count()
         w = fn(TargetSys, TargetComp, 0,
                MAV_FRAME_GLOBAL_RELATIVE_ALT,
-               MAV_CMD_NAV_WAYPOINT, 0, 1, 0, 0, 0, 0, -26.592155, 151.842225, 80)
+               MAV_CMD_NAV_WAYPOINT, 0, 1, 0, 0, 0, 0, self.landingApproach[0], self.landingApproach[1], 80)
         MAVpointLoader.add(w, comment='Landing approach')
 
         # drop our speed
@@ -498,7 +550,7 @@ class MissionGenerator():
         # landing approach
         w = fn(TargetSys, TargetComp, 0,
                MAV_FRAME_GLOBAL_RELATIVE_ALT,
-               MAV_CMD_NAV_WAYPOINT, 0, 1, 0, 0, 0, 0, -26.588218, 151.841345, 30)
+               MAV_CMD_NAV_WAYPOINT, 0, 1, 0, 0, 0, 0, self.landingApproach2[0], self.landingApproach2[1], 30)
         MAVpointLoader.add(w, comment='Landing approach 2')
 
         # drop our speed again
@@ -514,7 +566,7 @@ class MissionGenerator():
         # landing
         w = fn(TargetSys, TargetComp, 0,
                MAV_FRAME_GLOBAL_RELATIVE_ALT,
-               MAV_CMD_NAV_LAND, 0, 1, 0, 0, 0, 0, -26.582821, 151.840247, 0)
+               MAV_CMD_NAV_LAND, 0, 1, 0, 0, 0, 0, self.landingPt[0], self.landingPt[1], 0)
         MAVpointLoader.add(w, comment='Landing')
         MAVpointLoader.add(dummyw, 'landing dummy')
 
@@ -584,7 +636,7 @@ class MissionGenerator():
         #print "Done AF home"
         #WP12 - WPn - and add in the rest of the waypoints - Entry lane, search area, exit lane
         entry_wpnum = MAVpointLoader.count()
-        for i in range(len(self.entryPoints)-1):
+        for i in range(1):
             point = self.entryPoints[i]
             w = fn(TargetSys, TargetComp, 0,
                    MAV_FRAME_GLOBAL_RELATIVE_ALT,
@@ -643,7 +695,8 @@ class MissionGenerator():
             MAVpointLoader.wp(wnum).param1 = exit_wpnum
 
         #export the waypoints to a MAVLink compatible format/file
-        waytxt = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'data', "way.txt")
+        waytxt = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
+                              'data', opts.outname)
         MAVpointLoader.save(waytxt)
         print "Waypoints exported to %s" % waytxt
 
@@ -696,6 +749,8 @@ if __name__ == "__main__":
     parser.add_option("--altitude", type='int', default=90, help="Altitude of waypoints")
     parser.add_option("--terrainTrack", type='int', default=1, help="0 if --altitude is ASL, 1 if AGL (terrain tracking)")
     parser.add_option("--loiterInSearchArea", type='int', default=1, help="1 if UAV loiters in search area at end of search. 0 if it goes home")
+    parser.add_option("--sutton", action='store_true', default=False, help="use sutton WP")
+    parser.add_option("--outname", default='way.txt', help="name in data dir")
 
     (opts, args) = parser.parse_args()
 
