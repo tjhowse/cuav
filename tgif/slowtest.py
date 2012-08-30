@@ -42,12 +42,12 @@ while 1:
                 cv.Rectangle(img_small,(minx,miny), (maxx,maxy),cv.RGB(255,0,0),1,0,0);
             cv.SaveImage("/www/pages/test.jpg",img_small)
             tCalc = int(round(time.time()*1000))
-            tTotal = tCalc-tNewImage
+            tTotal = tCalc-tImageWritten
             print ( "Capture: " + str(tNewImage-tImageWritten)+
                     " Load: " + str(tImageLoaded-tNewImage)+
                     " Process: " + str(tImageScanned-tImageLoaded)+
                     " Written: " + str(tCalc-tImageScanned)+
-                    " Total: " + str(tCalc-tImageWritten)+
-                    str(round(1/tTotal)) + " FPS")
+                    " Total: " + str(tCalc-tImageWritten)+ " "+
+                    str(round(1.0000/(tTotal/1000.00),2)) + " FPS")
             tImageWritten = int(round(time.time()*1000))
 
