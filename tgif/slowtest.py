@@ -17,14 +17,15 @@ avgFPS = 0;
 #while 1:
 #img = cv.LoadImage("slow.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
 tImageWritten = int(round(time.time()*1000))
+imgPath = "/tmp/"
 while 1:
-    if os.path.exists("imgReady"):
+    if os.path.exists(imgPath+"imgReady"):
         print "New image ready!"
         tNewImage = int(round(time.time()*1000))
         #img = cv.LoadImage("loop.bmp", cv.CV_LOAD_IMAGE_UNCHANGED)
-        os.rename("loop.jpg","processme.jpg");
-        os.remove("imgReady")
-        img_small = cv.LoadImage("processme.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
+        os.rename(imgPath+"loop.jpg",imgPath+"processme.jpg");
+        os.remove(imgPath+"imgReady")
+        img_small = cv.LoadImage(imgPath+"processme.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
         #img_small = cv.LoadImage("loop.bmp", cv.CV_LOAD_IMAGE_UNCHANGED)
         if not img_small:
             print "Null Image"
@@ -38,7 +39,7 @@ while 1:
         tImageLoaded = int(round(time.time()*1000))
         regions = scanner.scan(img_small)
         tImageScanned = int(round(time.time()*1000))
-        img_small = cv.fromarray(img_small)
+        #img_small = cv.fromarray(img_small)
         if len(regions) == 0:
             print "Nothing found :("
         else:

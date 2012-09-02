@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     do
     {
         //while ((fileTest = fopen("imgReady","r")) != NULL)
-        while (!stat("imgReady",&junk))
+        while (!stat("/tmp/imgReady",&junk))
         {
             //fclose(fileTest);
             usleep(1000);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         {
             //cvResize(frame,outputFrame);
             cvSaveImage(saveFile, outputFrame);
-            fileTest = fopen("imgReady","w+");
+            fileTest = fopen("/tmp/imgReady","w+");
             fclose(fileTest);
             printf("Got frame\n");
         

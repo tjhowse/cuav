@@ -22,7 +22,7 @@
 //#undef __ARM_NEON__
 
 #define NOINLINE __attribute__((noinline))
-
+#define __ARM_NEON
 #ifdef __ARM_NEON__
 #include <arm_neon.h>
 #endif
@@ -47,8 +47,8 @@
 
 static PyObject *ScannerError;
 
-#define WIDTH 1280
-#define HEIGHT 960
+#define WIDTH 800
+#define HEIGHT 600
 
 #define PACKED __attribute__((__packed__))
 
@@ -58,6 +58,7 @@ static PyObject *ScannerError;
 #define MAX(a,b) ((a)>(b)?(a):(b))
 
 #define SAVE_INTERMEDIATE 0
+
 
 struct PACKED rgb {
 	uint8_t b, g, r;
