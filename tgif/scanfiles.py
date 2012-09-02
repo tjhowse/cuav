@@ -38,6 +38,7 @@ for subdir,dirs,files in os.walk(imgdir):
 
 
         tImageLoaded = int(round(time.time()*1000))
+        regions = scanner.downsample(img_small)
         regions = scanner.scan(img_small)
         tImageScanned = int(round(time.time()*1000))
         img_small = cv.fromarray(img_small)
