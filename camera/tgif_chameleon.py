@@ -32,29 +32,41 @@ def trigger(h, continuous):
 
 def load_image(filename):
     #os.rename(filename, imgPath+"processme.jpg")
+    
+    img = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_UNCHANGED)
     os.remove(imgPath+"imgReady")
-    #img = cv.LoadImage(imgPath+"processme.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
-    img = cv.LoadImage(imgPath+"loop.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
-
+    #print "downsamping"
     img = numpy.ascontiguousarray(cv.GetMat(img))
+    #try:
+    #    cv.SaveImage("/home/root/opencv/blob/captures/downsampled.jpg",cv.fromarray(img))
+    #except Exception, msg:
+    #    print "Writing out file failed"
+    #print "contin"
 
+    #print "done"
     return img
 
 def capture(h, timeout, img):
     global continuous_mode, trigger_time, frame_rate, frame_counter, fake, last_frame_time
     
     while timeout > 0 and not os.path.exists(imgPath+"imgReady"):
-        print "Gave up waiting for a frame\n"
         timeout -= 10
-    print timeout
+    
+    if timeout <= 0:
+        print "Gave up waiting for a frame\n"
+        return trigger_time, frame_counter, 0
 
     frame_counter += 1
 
     trigger_time = time.time()
     try:
-        img = load_image(imgPath+"loop.jpg")
+        fake_img = load_image(imgPath+"loop.jpg")
     except Exception, msg:
-        print "Failed to grab image\n"
+        print "Failed to grab image"
+
+    img.data = fake_img.data
+    #cv.SaveImage("/home/root/opencv/blob/captures/downsampled.jpg",cv.fromarray(img))
+
     return trigger_time, frame_counter, 0
 
     tnow = time.time()
@@ -92,7 +104,9 @@ def set_gamma(h, gamma):
     chameleon_gamma = gamma
 
 def save_pgm(filename, img):
-    return chameleon.save_pgm(filename, img)
+    return 0
+    #return chameleon.save_pgm(filename, img)
 
 def save_file(filename, bytes):
-    return chameleon.save_file(filename, bytes)
+    return 0
+    #return chameleon.save_file(filename, bytes)

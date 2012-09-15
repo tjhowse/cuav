@@ -43,9 +43,15 @@ scanner.so: scanner.o debayer.o pgm_io.o
 caponeshot: caponeshot.cpp
 	$(CC) -o caponeshot caponeshot.cpp $(LIBOPENCV) $(LIBJPEG)
 
+groundtest: groundtest.cpp
+	$(CC) -o groundtest groundtest.cpp $(LIBOPENCV) $(LIBJPEG)
+
 scan: scan.cpp
 	echo $(ARCH)
 	$(CC) -o scan scan.cpp $(CFLAGS) $(LIBS) $(shell python-config --libs) $(LIBJPEG) $(LIBOPENCV)
+
+camvartest: camvartest.cpp
+	$(CC) -o camvartest camvartest.cpp $(LIBOPENCV) $(LIBJPEG)
 
 clean:
 	rm -f *.o *.so *~ *.bak hgram_scanner hgram_scanner8 blobtest histtest image.lib

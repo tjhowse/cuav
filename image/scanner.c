@@ -50,6 +50,9 @@ static PyObject *ScannerError;
 #define WIDTH 800
 #define HEIGHT 600
 
+#define OUTWIDTH 640
+#define OUTHEIGHT 480
+
 #define PACKED __attribute__((__packed__))
 
 #define ALLOCATE(p) (p) = malloc(sizeof(*p))
@@ -57,7 +60,7 @@ static PyObject *ScannerError;
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define MAX(a,b) ((a)>(b)?(a):(b))
 
-#define SAVE_INTERMEDIATE 0
+#define SAVE_INTERMEDIATE 0 
 
 
 struct PACKED rgb {
@@ -1291,9 +1294,9 @@ scanner_scan(PyObject *self, PyObject *args)
 
 	CHECK_CONTIGUOUS(img_in);
 
-	if (PyArray_DIM(img_in, 1) != WIDTH/2 ||
-	    PyArray_DIM(img_in, 0) != HEIGHT/2 ||
-	    PyArray_STRIDE(img_in, 0) != 3*(WIDTH/2)) {
+	if (PyArray_DIM(img_in, 1) != OUTWIDTH ||
+	    PyArray_DIM(img_in, 0) != OUTHEIGHT ||
+	    PyArray_STRIDE(img_in, 0) != 3*(OUTWIDTH)) {
 		PyErr_SetString(ScannerError, "input must 640x480 24 bit");		
 		return NULL;
 	}
@@ -1522,16 +1525,18 @@ scanner_downsample(PyObject *self, PyObject *args)
 
 	CHECK_CONTIGUOUS(img_in);
 	CHECK_CONTIGUOUS(img_out);
-
+    //printf("width: %d\n",PyArray_DIM(img_in, 1));
+    //printf("height: %d\n",PyArray_DIM(img_in, 0));
+    //printf("depth: %d\n",PyArray_STRIDE(img_in, 0));
 	if (PyArray_DIM(img_in, 1) != WIDTH ||
 	    PyArray_DIM(img_in, 0) != HEIGHT ||
 	    PyArray_STRIDE(img_in, 0) != WIDTH*3) {
-		PyErr_SetString(ScannerError, "input must be 1280x960 24 bit");
+		PyErr_SetString(ScannerError, "input must be 800x600 24 bit");
 		return NULL;
 	}
-	if (PyArray_DIM(img_out, 1) != WIDTH/2 ||
-	    PyArray_DIM(img_out, 0) != HEIGHT/2 ||
-	    PyArray_STRIDE(img_out, 0) != 3*(WIDTH/2)) {
+	if (PyArray_DIM(img_out, 1) != OUTWIDTH ||
+	    PyArray_DIM(img_out, 0) != OUTHEIGHT ||
+	    PyArray_STRIDE(img_out, 0) != 3*(OUTWIDTH)) {
 		PyErr_SetString(ScannerError, "output must be 640x480 24 bit");
 		return NULL;
 	}
@@ -1540,10 +1545,10 @@ scanner_downsample(PyObject *self, PyObject *args)
 	struct rgb_image8 *out = PyArray_DATA(img_out);
 
 	Py_BEGIN_ALLOW_THREADS;
-	for (uint16_t y=0; y<HEIGHT/2; y++) {
-		for (uint16_t x=0; x<WIDTH/2; x++) {
-#if 0
-			out->data[y][x] = in->data[y*2][x*2];
+	for (uint16_t y=0; y<OUTHEIGHT; y++) {
+		for (uint16_t x=0; x<OUTWIDTH; x++) {
+#if 1
+			out->data[y][x] = in->data[(int)(y*1.25)][(int)(x*1.25)];
 #else
 			const struct rgb *p0 = &in->data[y*2+0][x*2+0];
 			const struct rgb *p1 = &in->data[y*2+0][x*2+1];
