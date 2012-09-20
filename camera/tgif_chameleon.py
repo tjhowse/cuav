@@ -31,19 +31,13 @@ def trigger(h, continuous):
 
 
 def load_image(filename):
-    #os.rename(filename, imgPath+"processme.jpg")
-    
-    img = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_UNCHANGED)
+    os.rename(filename, imgPath+"processme.jpg")
     os.remove(imgPath+"imgReady")
-    #print "downsamping"
-    img = numpy.ascontiguousarray(cv.GetMat(img))
-    #try:
-    #    cv.SaveImage("/home/root/opencv/blob/captures/downsampled.jpg",cv.fromarray(img))
-    #except Exception, msg:
-    #    print "Writing out file failed"
-    #print "contin"
+    img = cv.LoadImage(imgPath+"processme.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
+    #img = cv.LoadImage(imgPath+"loop.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
 
-    #print "done"
+    img = numpy.ascontiguousarray(cv.GetMat(img))
+
     return img
 
 def capture(h, timeout, img):
@@ -60,13 +54,9 @@ def capture(h, timeout, img):
 
     trigger_time = time.time()
     try:
-        fake_img = load_image(imgPath+"loop.jpg")
+        img = load_image(imgPath+"loop.jpg")
     except Exception, msg:
         print "Failed to grab image"
-
-    img.data = fake_img.data
-    #cv.SaveImage("/home/root/opencv/blob/captures/downsampled.jpg",cv.fromarray(img))
-
     return trigger_time, frame_counter, 0
 
     tnow = time.time()
@@ -108,5 +98,6 @@ def save_pgm(filename, img):
     #return chameleon.save_pgm(filename, img)
 
 def save_file(filename, bytes):
-    return 0
+    return cv.SaveImage(filename,bytes)
+    #return 0
     #return chameleon.save_file(filename, bytes)
