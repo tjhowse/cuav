@@ -101,6 +101,6 @@ def save_pgm(filename, img):
     #return chameleon.save_pgm(filename, img)
 
 def save_file(filename, bytes):
-    #return cv.SaveImage(filename,bytes)
-    return 0
+    return cv.SaveImage(filename,bytes)
+    #return 0
     #return chameleon.save_file(filename, bytes)
