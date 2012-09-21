@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     int setLoop = 0;
     FILE* fileTest;
     struct stat junk;
-    
+    uchar checkR, checkG, checkB;
 
     
     if (argc > 1)
@@ -80,9 +80,28 @@ int main(int argc, char* argv[])
         while (!stat("/tmp/imgReady",&junk))
         {
             //fclose(fileTest);
-            usleep(1000);
-            frame = cvQueryFrame(camera);
-            cvResize(frame,outputFrame);
+            while(1)
+            {
+                frame = cvQueryFrame(camera);
+                usleep(100000);
+                if (frame != NULL)
+                {
+                    checkR = ((uchar*)(frame->imageData + frame->widthStep*599))[799*3];
+                    checkG = ((uchar*)(frame->imageData + frame->widthStep*599))[799*3+1];
+                    checkB = ((uchar*)(frame->imageData + frame->widthStep*599))[799*3+2];
+
+                    if ((checkR == 128) && (checkG == 128) && (checkB == 128))
+                    {
+                        printf("Bad image, discarded\n");
+                    } else {
+                        break;
+                    }
+                }
+            }
+            cvSaveImage(saveFile, frame);
+            usleep(100000);
+            //sync();
+            //cvResize(frame,outputFrame);
             //cvGrabFrame(camera);
         }
 
@@ -93,7 +112,6 @@ int main(int argc, char* argv[])
         if (frame != NULL)
         {
             //cvResize(frame,outputFrame);
-            cvSaveImage(saveFile, outputFrame);
             fileTest = fopen("/tmp/imgReady","w+");
             fclose(fileTest);
             printf("Got frame\n");
