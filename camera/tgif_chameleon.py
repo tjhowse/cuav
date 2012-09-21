@@ -34,17 +34,19 @@ def load_image(filename):
     os.rename(filename, imgPath+"processme.jpg")
     os.remove(imgPath+"imgReady")
     img = cv.LoadImage(imgPath+"processme.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
+    #cv.SaveImage("/home/root/opencv/blob/captures/test.jpg",img)
     #img = cv.LoadImage(imgPath+"loop.jpg", cv.CV_LOAD_IMAGE_UNCHANGED)
-
     img = numpy.ascontiguousarray(cv.GetMat(img))
-
     return img
 
 def capture(h, timeout, img):
     global continuous_mode, trigger_time, frame_rate, frame_counter, fake, last_frame_time
-    
+   
+    #print "Timeout: " + timeout
+
     while timeout > 0 and not os.path.exists(imgPath+"imgReady"):
         timeout -= 10
+        time.sleep(0.01)
     
     if timeout <= 0:
         print "Gave up waiting for a frame\n"
@@ -54,9 +56,10 @@ def capture(h, timeout, img):
 
     trigger_time = time.time()
     try:
-        img = load_image(imgPath+"loop.jpg")
+        img.data = load_image(imgPath+"loop.jpg")
+        #cv.SaveImage("/home/root/opencv/blob/captures/test.jpg",cv.fromarray(img))
     except Exception, msg:
-        print "Failed to grab image"
+        print "Failed to grab image: "
     return trigger_time, frame_counter, 0
 
     tnow = time.time()
@@ -98,6 +101,6 @@ def save_pgm(filename, img):
     #return chameleon.save_pgm(filename, img)
 
 def save_file(filename, bytes):
-    return cv.SaveImage(filename,bytes)
-    #return 0
+    #return cv.SaveImage(filename,bytes)
+    return 0
     #return chameleon.save_file(filename, bytes)
